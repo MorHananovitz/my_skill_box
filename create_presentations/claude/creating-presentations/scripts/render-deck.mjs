@@ -1,3 +1,4 @@
+import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -670,6 +671,12 @@ function addHairline(slide, pptx, palette, x, y, w) {
   });
 }
 
+function codeOwner(dir) {
+  const result = spawnSync("git", ["-C", dir, "config", "user.name"], { encoding: "utf8" });
+  if (result.status !== 0) return "";
+  return String(result.stdout || "").trim();
+}
+
 async function renderPptx(deck, outFile) {
   const palette = PALETTES[deck.ticket.palette];
   const type = TYPE[deck.ticket.typePair];
@@ -677,7 +684,7 @@ async function renderPptx(deck, outFile) {
   const pptx = new PptxGenJS();
   pptx.defineLayout({ name: "WIDE", width: W, height: H });
   pptx.layout = "WIDE";
-  pptx.author = "Hayadata";
+  pptx.author = codeOwner(path.dirname(outFile));
   pptx.title = deck.title;
   const x = contentLeft(deck.ticket);
 
