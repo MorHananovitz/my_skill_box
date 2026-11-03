@@ -1,0 +1,69 @@
+{
+  "title": "Cache the hot path",
+  "mode": "technical",
+  "ticket": {
+    "palette": "plum-gold",
+    "family": "editorial",
+    "typePair": "grotesque-mono",
+    "motif": "hairline"
+  },
+  "slides": [
+    {
+      "archetype": "title",
+      "kicker": "Systems review",
+      "title": "Cache the hot path",
+      "subtitle": "A readout on read latency after one change."
+    },
+    {
+      "archetype": "statement",
+      "title": "The database was doing work the cache should have kept."
+    },
+    {
+      "archetype": "metrics",
+      "title": "What changed in production",
+      "metrics": [
+        { "value": "42ms", "label": "p95 read latency", "hint": "was 110ms" },
+        { "value": "3.1×", "label": "cache hit rate", "hint": "on the hot key" },
+        { "value": "0", "label": "stale reads", "hint": "after the TTL fix" }
+      ]
+    },
+    {
+      "archetype": "chart",
+      "kicker": "Latency",
+      "title": "p95 fell after the cache shipped",
+      "note": "The drop lands in week 3, when the hot keys moved.",
+      "chart": {
+        "type": "line",
+        "unit": "ms",
+        "series": [
+          { "name": "p95", "labels": ["W1", "W2", "W3", "W4"], "values": [110, 108, 64, 42] }
+        ]
+      }
+    },
+    {
+      "archetype": "diagram",
+      "title": "Request path",
+      "nodes": [
+        { "id": "api", "label": "API" },
+        { "id": "cache", "label": "Cache" },
+        { "id": "db", "label": "Primary" }
+      ],
+      "edges": [
+        { "from": "api", "to": "cache" },
+        { "from": "cache", "to": "db" }
+      ]
+    },
+    {
+      "archetype": "code",
+      "title": "The read stays explicit",
+      "language": "python",
+      "code": "hit = cache.get(key)\nif hit is not None:\n    return hit\nrow = db.fetch(key)\ncache.set(key, row, ttl=30)\nreturn row"
+    },
+    {
+      "archetype": "close",
+      "kicker": "Next",
+      "title": "Ship the same pattern to writes.",
+      "subtitle": "Only after the read path stays boring."
+    }
+  ]
+}
